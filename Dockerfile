@@ -18,7 +18,8 @@ FROM golang:1.12.3
 ENV WFS3_API_URL ''
 
 COPY --from=BUILD /go/bin/* /bin/
-ENTRYPOINT /bin/wfs-tiler
+ADD /startup.sh /
+ENTRYPOINT /startup.sh
 
 EXPOSE 3000
 

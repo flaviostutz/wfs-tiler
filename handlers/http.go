@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"context"
-	"log"
 	"net/http"
 	"time"
 
-	"github.com/flaviostutz/wfs3-tiler/handlers"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
 	cors "github.com/itsjamie/gin-cors"
 )
@@ -17,7 +15,7 @@ type HTTPServer struct {
 	router *gin.Engine
 }
 
-func NewHTTPServer() *HTTPServer {
+func NewHTTPServer(wfsURL string) *HTTPServer {
 	router := gin.Default()
 
 	router.Use(cors.Middleware(cors.Config{
@@ -30,24 +28,26 @@ func NewHTTPServer() *HTTPServer {
 		ValidateHeaders: false,
 	}))
 
-	setupVectorTilerHandlers(wfsURL)
-
-	return &HTTPServer{server: &http.Server{
+	h := &HTTPServer{server: &http.Server{
 		Addr:    ":3000",
 		Handler: router,
 	}, router: router}
+
+	h.setupVectorTilerHandlers(wfsURL)
+
+	return h
 }
 
 //Start the main HTTP Server entry
-func (s *HTTPServer) Start(wfsURL string) error {
+func (s *HTTPServer) Start() error {
 	logrus.Infof("Starting HTTP Server on port 3000")
 	return s.server.ListenAndServe()
 }
 
 //Stop for the run group
-func (s *HTTPServer) Stop() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	logrus.Warnf("Stopping HTTP Server")
-	return s.server.Shutdown(ctx)
-}
+// func (s *HTTPServer) Stop() error {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+// 	logrus.Warnf("Stopping HTTP Server")
+// 	return s.server.Shutdown(ctx)
+// }

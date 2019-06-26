@@ -1,15 +1,16 @@
 package main
 
 import (
-	"log"
+	"flag"
 	"os"
-	"os/signal"
-	"syscall"
+
+	"github.com/flaviostutz/wfs-tiler/handlers"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	logLevel := flag.String("loglevel", "debug", "debug, info, warning, error")
-	wfsURL0 := flag.Bool("wfs-url", "", "WFS 3.0 server API URL from which to get feature in order to provide the vector tile contents")
+	wfsURL0 := flag.String("wfs-url", "", "WFS 3.0 server API URL from which to get feature in order to provide the vector tile contents")
 	flag.Parse()
 
 	switch *logLevel {
@@ -30,15 +31,15 @@ func main() {
 
 	wfsURL := *wfsURL0
 	if wfsURL == "" {
-		logrus.Errorf("'wfsUrl' is required")
-		exit(1)
+		logrus.Errorf("'--wfs-url' is required")
+		os.Exit(1)
 	}
 
-	h := handlers.NewHTTPServer(wfsUrl)
+	h := handlers.NewHTTPServer(wfsURL)
 	err := h.Start()
 	if err != nil {
-		logrus.Errorf(err)
-		exit(1)
+		logrus.Errorf("Error starting server. err=%s", err)
+		os.Exit(1)
 	}
 
 	// var dbErr, httpErr error

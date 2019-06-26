@@ -1,4 +1,4 @@
 #!/bin/bash
 
 wfs-tiler \
-  --wfs-url=
+  --wfs-url=$WFS3_API_URL
