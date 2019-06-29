@@ -10,9 +10,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
-	m "github.com/murphy214/mercantile"
-	vt "github.com/murphy214/vector-tile-go"
-	geojson "github.com/paulmach/go.geojson"
+
+	// vt "github.com/murphy214/vector-tile-go"
+	"github.com/paulmach/orb/encoding/mvt"
+	"github.com/paulmach/orb/geojson"
+	"github.com/paulmach/orb/maptile"
+	"github.com/paulmach/orb/simplify"
 	"github.com/sirupsen/logrus"
 )
 
@@ -91,7 +94,7 @@ func getVectorTile(wfsURL string) func(*gin.Context) {
 			return
 		}
 
-		logrus.Debugf("WFS response: %s", data)
+		logrus.Debugf("WFS response bytes: %d", len(data))
 		err = json.Unmarshal(data, &fc)
 		if err != nil {
 			msg := fmt.Sprintf("Error parsing WFS service response. err=%s", err)
@@ -99,24 +102,41 @@ func getVectorTile(wfsURL string) func(*gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": msg})
 			return
 		}
-		features := fc.Features
+		logrus.Debugf("WFS response feature count: %d", len(fc.Features))
 
-		xyz := m.TileID{
-			X: int64(x),
-			Y: int64(y),
-			Z: uint64(z)}
+		collections := make(map[string]*geojson.FeatureCollection)
+		collections[collection] = &fc
 
-		config1 := vt.NewConfig(collection, xyz)
-		layer1bytes, err := vt.WriteLayer(features, config1)
-		if err != nil {
-			fmt.Println(err)
+		// Convert to a layers object and project to tile coordinates.
+		layers := mvt.NewLayers(collections)
+		layers.ProjectToTile(maptile.New(uint32(x), uint32(y), maptile.Zoom(z)))
+
+		// In order to be used as source for MapboxGL geometries need to be clipped
+		// to max allowed extent. (uncomment next line)
+		layers.Clip(mvt.MapboxGLDefaultExtentBound)
+
+		// Simplify the geometry now that it's in tile coordinate space.
+		layers.Simplify(simplify.DouglasPeucker(10.0 * (18.0 / float64(z))))
+
+		// Depending on use-case remove empty geometry, those too small to be
+		// represented in this tile space.
+		// In this case lines shorter than 1, and areas smaller than 2.
+		layers.RemoveEmpty(50.0*(18.0/float64(z)), 800.0*(18.0/float64(z)))
+
+		// encoding using the Mapbox Vector Tile protobuf encoding.
+		layerBytes, err0 := mvt.Marshal(layers)
+		if err0 != nil {
+			msg := fmt.Sprintf("Error generating MVT bytes. err=%s", err0)
+			logrus.Errorf(msg)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": msg})
+			return
 		}
 
 		// c.Header("Cache-Control", "public, max-age=604800")
 		c.Render(
 			http.StatusOK, render.Data{
 				ContentType: "application/vnd.mapbox-vector-tile",
-				Data:        layer1bytes,
+				Data:        layerBytes,
 			})
 
 	}
