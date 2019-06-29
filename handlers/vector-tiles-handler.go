@@ -116,12 +116,12 @@ func getVectorTile(wfsURL string) func(*gin.Context) {
 		layers.Clip(mvt.MapboxGLDefaultExtentBound)
 
 		// Simplify the geometry now that it's in tile coordinate space.
-		layers.Simplify(simplify.DouglasPeucker(10.0 * (18.0 / float64(z))))
+		layers.Simplify(simplify.DouglasPeucker(10.0))
 
 		// Depending on use-case remove empty geometry, those too small to be
 		// represented in this tile space.
 		// In this case lines shorter than 1, and areas smaller than 2.
-		layers.RemoveEmpty(50.0*(18.0/float64(z)), 800.0*(18.0/float64(z)))
+		layers.RemoveEmpty(50.0*(18.0/float64(z)), 300.0*(18.0/float64(z)))
 
 		// encoding using the Mapbox Vector Tile protobuf encoding.
 		layerBytes, err0 := mvt.Marshal(layers)
