@@ -9,7 +9,7 @@ services:
       - 3000:3000
     restart: always
     environment:
-      - WFS3_API_URL=http://wfsgis:8080/
+      - WFS3_API_URL=http://wfsgis:8080
 
   wfsgis:
     image: flaviostutz/wfsgis
@@ -30,3 +30,5 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=admin
+
+      
