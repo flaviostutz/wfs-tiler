@@ -10,7 +10,7 @@ services:
     restart: always
     environment:
       - WFS3_API_URL=http://wfsgis:8080
-      # - CACHE_CONTROL=public,max-age=
+      - CACHE_CONTROL=public,max-age=3600
 
   map-demos:
     image: flaviostutz/map-demos
@@ -25,7 +25,7 @@ services:
     ports:
       - 8282:80
     environment:
-      - PROXY_PASS_URL=http://localhost:3000/
+      - PROXY_PASS_URL=http://wfs-tiler:3000/
 
   wfsgis:
     image: flaviostutz/wfsgis
