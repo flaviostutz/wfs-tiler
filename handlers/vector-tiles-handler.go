@@ -19,11 +19,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *HTTPServer) setupVectorTilerHandlers(wfsURL string) {
-	h.router.GET("/tiles/:collection/:z/:x/:y.mvt", getVectorTile(wfsURL))
+func (h *HTTPServer) setupVectorTilerHandlers(wfsURL string, cacheControl string) {
+	h.router.GET("/tiles/:collection/:z/:x/:y.mvt", getVectorTile(wfsURL, cacheControl))
 }
 
-func getVectorTile(wfsURL string) func(*gin.Context) {
+func getVectorTile(wfsURL string, cacheControl string) func(*gin.Context) {
 	return func(c *gin.Context) {
 		collection := c.Param("collection")
 		x, err := strconv.Atoi(c.Param("x"))
@@ -121,7 +121,7 @@ func getVectorTile(wfsURL string) func(*gin.Context) {
 		// Depending on use-case remove empty geometry, those too small to be
 		// represented in this tile space.
 		// In this case lines shorter than 1, and areas smaller than 2.
-		layers.RemoveEmpty(50.0*(18.0/float64(z)), 300.0*(18.0/float64(z)))
+		layers.RemoveEmpty(30.0*(18.0/float64(z)), 200.0*(18.0/float64(z)))
 
 		// encoding using the Mapbox Vector Tile protobuf encoding.
 		layerBytes, err0 := mvt.Marshal(layers)
@@ -132,7 +132,9 @@ func getVectorTile(wfsURL string) func(*gin.Context) {
 			return
 		}
 
-		// c.Header("Cache-Control", "public, max-age=604800")
+		if cacheControl != ""{
+			c.Header("Cache-Control", cacheControl)
+		}
 		c.Render(
 			http.StatusOK, render.Data{
 				ContentType: "application/vnd.mapbox-vector-tile",

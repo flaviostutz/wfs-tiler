@@ -10,6 +10,22 @@ services:
     restart: always
     environment:
       - WFS3_API_URL=http://wfsgis:8080
+      # - CACHE_CONTROL=public,max-age=
+
+  map-demos:
+    image: flaviostutz/map-demos
+    ports:
+      - 8181:80
+    environment:
+      - MAPBOX_VECTOR_TILE_URL=http://localhost:8282/tiles/tests/{z}/{x}/{y}.mvt
+      # - MAPBOX_VECTOR_TILE_URL=http://localhost:3000/tiles/tests/{z}/{x}/{y}.mvt
+
+  nginx-cache-proxy:
+    image: flaviostutz/nginx-cache-proxy
+    ports:
+      - 8282:80
+    environment:
+      - PROXY_PASS_URL=http://localhost:3000/
 
   wfsgis:
     image: flaviostutz/wfsgis
@@ -31,4 +47,3 @@ services:
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=admin
 
-      

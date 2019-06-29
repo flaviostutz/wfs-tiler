@@ -1,4 +1,6 @@
 #!/bin/bash
 
 wfs-tiler \
-  --wfs-url=$WFS3_API_URL
+  --loglevel="$LOG_LEVEL" \
+  --wfs-url="$WFS3_API_URL" \
+  --cache-control="$CACHE_CONTROL"

@@ -16,6 +16,8 @@ RUN go build -o /go/bin/wfs-tiler
 FROM golang:1.12.3
 
 ENV WFS3_API_URL ''
+ENV CACHE_CONTROL ''
+ENV LOG_LEVEL 'info'
 
 COPY --from=BUILD /go/bin/* /bin/
 ADD /startup.sh /

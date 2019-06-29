@@ -11,6 +11,7 @@ import (
 func main() {
 	logLevel := flag.String("loglevel", "debug", "debug, info, warning, error")
 	wfsURL0 := flag.String("wfs-url", "", "WFS 3.0 server API URL from which to get feature in order to provide the vector tile contents")
+	cacheControl0 := flag.String("cache-control", "", "HTTP response Cache-Control header contents for all requests. If empty, no header is set.")
 	flag.Parse()
 
 	switch *logLevel {
@@ -35,7 +36,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	h := handlers.NewHTTPServer(wfsURL)
+	cacheControl := *cacheControl0
+
+	h := handlers.NewHTTPServer(wfsURL, cacheControl)
 	err := h.Start()
 	if err != nil {
 		logrus.Errorf("Error starting server. err=%s", err)

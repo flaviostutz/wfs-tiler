@@ -15,7 +15,7 @@ type HTTPServer struct {
 	router *gin.Engine
 }
 
-func NewHTTPServer(wfsURL string) *HTTPServer {
+func NewHTTPServer(wfsURL string, cacheControl string) *HTTPServer {
 	router := gin.Default()
 
 	router.Use(cors.Middleware(cors.Config{
@@ -33,7 +33,7 @@ func NewHTTPServer(wfsURL string) *HTTPServer {
 		Handler: router,
 	}, router: router}
 
-	h.setupVectorTilerHandlers(wfsURL)
+	h.setupVectorTilerHandlers(wfsURL, cacheControl)
 
 	return h
 }
