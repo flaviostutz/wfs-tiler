@@ -19,11 +19,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *HTTPServer) setupVectorTilerHandlers(wfsURL string, cacheControl string) {
-	h.router.GET("/tiles/:collection/:z/:x/:y.mvt", getVectorTile(wfsURL, cacheControl))
+func (h *HTTPServer) setupVectorTilerHandlers(opt Options) {
+	h.router.GET("/tiles/:collection/:z/:x/:y.mvt", getVectorTile(opt))
 }
 
-func getVectorTile(wfsURL string, cacheControl string) func(*gin.Context) {
+func getVectorTile(opt Options) func(*gin.Context) {
 	return func(c *gin.Context) {
 		collection := c.Param("collection")
 		x, err := strconv.Atoi(c.Param("x"))
@@ -41,6 +41,11 @@ func getVectorTile(wfsURL string, cacheControl string) func(*gin.Context) {
 		z, err := strconv.Atoi(c.Param("z"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "'z' parameter is invalid"})
+			return
+		}
+
+		if z > opt.MaxZoomLevel {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Zoom level not allowed"})
 			return
 		}
 
@@ -70,7 +75,7 @@ func getVectorTile(wfsURL string, cacheControl string) func(*gin.Context) {
 			timestr = fmt.Sprintf("&time=%s", timestr)
 		}
 
-		q := fmt.Sprintf("%s/collections/%s/items?bbox=%s%s%s%s", wfsURL, collection, bboxstr, limitstr, timestr, propertiesFilterStr)
+		q := fmt.Sprintf("%s/collections/%s/items?bbox=%s%s%s%s", opt.WFSURL, collection, bboxstr, limitstr, timestr, propertiesFilterStr)
 		logrus.Debugf("WFS query: %s", q)
 		resp, err := http.Get(q)
 		if err != nil {
@@ -115,13 +120,19 @@ func getVectorTile(wfsURL string, cacheControl string) func(*gin.Context) {
 		// to max allowed extent. (uncomment next line)
 		layers.Clip(mvt.MapboxGLDefaultExtentBound)
 
+		mzl := float64(opt.MaxZoomLevel)
+		mgl := float64(opt.MinGeomLength)
+
+		//decrease to 0 as actual zoom level approaches max zoom level
+		zp := (mzl - float64(z)) / mzl
+
 		// Simplify the geometry now that it's in tile coordinate space.
-		layers.Simplify(simplify.DouglasPeucker(10.0))
+		layers.Simplify(simplify.DouglasPeucker(float64(opt.SimplificationLevel) * zp))
 
 		// Depending on use-case remove empty geometry, those too small to be
 		// represented in this tile space.
 		// In this case lines shorter than 1, and areas smaller than 2.
-		layers.RemoveEmpty(30.0*(18.0/float64(z)), 200.0*(18.0/float64(z)))
+		layers.RemoveEmpty((mgl*zp)/20.0, mgl*zp)
 
 		// encoding using the Mapbox Vector Tile protobuf encoding.
 		layerBytes, err0 := mvt.Marshal(layers)
@@ -132,8 +143,8 @@ func getVectorTile(wfsURL string, cacheControl string) func(*gin.Context) {
 			return
 		}
 
-		if cacheControl != ""{
-			c.Header("Cache-Control", cacheControl)
+		if opt.CacheControl != "" {
+			c.Header("Cache-Control", opt.CacheControl)
 		}
 		c.Render(
 			http.StatusOK, render.Data{

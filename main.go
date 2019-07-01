@@ -10,8 +10,11 @@ import (
 
 func main() {
 	logLevel := flag.String("loglevel", "debug", "debug, info, warning, error")
-	wfsURL0 := flag.String("wfs-url", "", "WFS 3.0 server API URL from which to get feature in order to provide the vector tile contents")
-	cacheControl0 := flag.String("cache-control", "", "HTTP response Cache-Control header contents for all requests. If empty, no header is set.")
+	wfsURL := flag.String("wfs-url", "", "WFS 3.0 server API URL from which to get feature in order to provide the vector tile contents")
+	cacheControl := flag.String("cache-control", "", "HTTP response Cache-Control header contents for all requests. If empty, no header is set.")
+	simplificationLevel := flag.Int("simplify-level", 10, "Geometry simplification level on min (wider) zoom level. The simplificication is decreased to 0 as zoom level approaches min (more detailed)")
+	minGeomLength := flag.Int("min-geom-length", 3600, "At min zoom (wider), geometries with length less than this value are hidden. This parameter is decreased to 0 as zoom level approaches min (more detailed)")
+	maxZoomLevel := flag.Int("max-zoom-level", 18, "Max allowed zoom level")
 	flag.Parse()
 
 	switch *logLevel {
@@ -28,43 +31,25 @@ func main() {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
 
-	logrus.Infof("====Starting WFS-TILER====")
+	opt := handlers.Options{
+		WFSURL:              *wfsURL,
+		CacheControl:        *cacheControl,
+		SimplificationLevel: *simplificationLevel,
+		MinGeomLength:       *minGeomLength,
+		MaxZoomLevel:        *maxZoomLevel,
+	}
 
-	wfsURL := *wfsURL0
-	if wfsURL == "" {
+	if opt.WFSURL == "" {
 		logrus.Errorf("'--wfs-url' is required")
 		os.Exit(1)
 	}
 
-	cacheControl := *cacheControl0
-
-	h := handlers.NewHTTPServer(wfsURL, cacheControl)
+	logrus.Infof("====Starting WFS-TILER====")
+	h := handlers.NewHTTPServer(opt)
 	err := h.Start()
 	if err != nil {
 		logrus.Errorf("Error starting server. err=%s", err)
 		os.Exit(1)
 	}
-
-	// var dbErr, httpErr error
-
-	// go func() {
-	// 	err := h.Start()
-	// 	if err != nil {
-	// 		logrus.Errorf(err)
-	// 		exit(1)
-	// 	}
-	// }()
-
-	// sigchan := make(chan os.Signal, 1)
-	// signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
-
-	// running := true
-	// for running == true {
-	// 	select {
-	// 	case sig := <-sigchan:
-	// 		h.Stop(httpErr)
-	// 		running = false
-	// 	}
-	// }
 
 }

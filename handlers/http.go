@@ -15,7 +15,16 @@ type HTTPServer struct {
 	router *gin.Engine
 }
 
-func NewHTTPServer(wfsURL string, cacheControl string) *HTTPServer {
+//Options for wfs tiler handlers
+type Options struct {
+	WFSURL              string
+	CacheControl        string
+	SimplificationLevel int
+	MinGeomLength       int
+	MaxZoomLevel        int
+}
+
+func NewHTTPServer(opt Options) *HTTPServer {
 	router := gin.Default()
 
 	router.Use(cors.Middleware(cors.Config{
@@ -33,7 +42,7 @@ func NewHTTPServer(wfsURL string, cacheControl string) *HTTPServer {
 		Handler: router,
 	}, router: router}
 
-	h.setupVectorTilerHandlers(wfsURL, cacheControl)
+	h.setupVectorTilerHandlers(opt)
 
 	return h
 }
