@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -132,7 +133,9 @@ func getVectorTile(opt Options) func(*gin.Context) {
 		// Depending on use-case remove empty geometry, those too small to be
 		// represented in this tile space.
 		// In this case lines shorter than 1, and areas smaller than 2.
-		layers.RemoveEmpty((mgl*zp)/20.0, mgl*zp)
+		minArea := mgl * zp
+		minLen := 2 * math.Pi * math.Sqrt(minArea/math.Pi)
+		layers.RemoveEmpty(minLen, minArea)
 
 		// encoding using the Mapbox Vector Tile protobuf encoding.
 		layerBytes, err0 := mvt.Marshal(layers)
