@@ -72,10 +72,6 @@ func getVectorTile(opt Options) func(*gin.Context) {
 			}
 		}
 
-		if timestr != "" {
-			timestr = fmt.Sprintf("&time=%s", timestr)
-		}
-
 		q := fmt.Sprintf("%s/collections/%s/items?bbox=%s%s%s%s", opt.WFSURL, collection, bboxstr, limitstr, timestr, propertiesFilterStr)
 		logrus.Debugf("WFS query: %s", q)
 		resp, err := http.Get(q)
