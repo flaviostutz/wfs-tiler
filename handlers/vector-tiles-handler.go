@@ -51,7 +51,7 @@ func getVectorTile(opt Options) func(*gin.Context) {
 		}
 
 		bbox := tile2BBox(x, y, z)
-		bboxstr := fmt.Sprintf("%f,%f,%f,%f", bbox.west, bbox.south, bbox.east, bbox.north)
+		bboxstr := fmt.Sprintf("%f,%f,%f,%f", bbox.west, bbox.north, bbox.east, bbox.south)
 		logrus.Debugf("tile=%d,%d,%d; bbox=%s", x, y, z, bboxstr)
 
 		limitstr := c.Query("limit")
