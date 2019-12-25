@@ -6,6 +6,8 @@ By using vector tiles, the map will fetch data only on the map portions that are
 
 Any WFS3.0 compliant source can be used.
 
+Watch a complete demo at https://youtu.be/pRMtTHFqrX0
+
 Check https://github.com/flaviostutz/map-demos for visualization examples.
 
 ## Usage
