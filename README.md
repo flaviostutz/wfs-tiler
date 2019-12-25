@@ -4,7 +4,7 @@ Useful for exposing huge data from WFS3 servers using vector tiles to avoid wast
 
 By using vector tiles, the map will fetch data only on the map portions that are meant to be rendered according to viewport and zoom level.
 
-Any WFS3.0 compliant source can be used.
+Any WFS3.0 compliant source can be used (ex.: http://github.com/flaviostutz/wfsgis)
 
 Watch a complete demo at https://youtu.be/pRMtTHFqrX0
 
