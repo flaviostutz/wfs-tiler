@@ -1,4 +1,7 @@
 # wfs-tiler
+
+[<img src="https://img.shields.io/docker/automated/flaviostutz/wfs-tiler"/>](https://hub.docker.com/r/flaviostutz/wfs-tiler)
+
 A Mapbox Vector Tile provider that uses a WFS3 service as data source.
 Useful for exposing huge data from WFS3 servers using vector tiles to avoid waste of unnecessary bandwidth and resource usage.
 
