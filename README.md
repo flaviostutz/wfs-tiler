@@ -61,6 +61,10 @@ services:
 
 * Run 'docker-compose up'
 
+* Runtime diagram
+
+<img src="demo-diagram.png" width="600" />
+
 * Open sample visualization of the tiles at http://localhost:8181/
 
 ## ENVs
