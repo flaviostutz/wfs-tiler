@@ -76,3 +76,6 @@ services:
 * MIN_GEOM_LENGTH - depending on zoom level of the tile, 'small' geometries are hidden. this parameter determines this sense of 'small'. defaults to '3600'
 * MAX_ZOOM_LEVEL - max zoom level permited. defaults '20'
 
+## Flow
+
+![WFSDiagram](WFSDiagram.png)
